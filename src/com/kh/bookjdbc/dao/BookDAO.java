@@ -45,6 +45,102 @@ public class BookDAO {
         }
         return list;
     }
+    public List<BookVO> indexBook() {
+        List<BookVO> tmpList = new ArrayList<>();
+        System.out.println("========검색창========");
+        System.out.println("[1]도서명 [2]ISBN [3]출판사 [4]지은이");
+        int sel = sc.nextInt();
+        try {
+            switch (sel) {
+                case 1:
+                    System.out.print("도서명을 입력하세요. : ");
+                    sc.nextLine();
+                    String bname = sc.nextLine();
+                    String indexsql = "SELECT * FROM BOOK WHERE BOOK_NAME = ?";
+                        conn = Common.getConnection();
+                        pStmt = conn.prepareStatement(indexsql);
+                        pStmt.setString(1, bname);
+                        rs = pStmt.executeQuery();
+                        while (rs.next()) {
+                            BigDecimal isbn = rs.getBigDecimal("ISBN_NO");
+                            String name = rs.getString("BOOK_NAME");
+                            String pub = rs.getString("PUBLISHER");
+                            String auth = rs.getString("AUTHOR");
+                            String date = rs.getString("PUB_DATE");
+                            String occ = rs.getString("IS_OCCUPIED");
+                            BookVO tmpvo = new BookVO(isbn, name, pub, auth, date, occ);
+                            tmpList.add(tmpvo);
+                        }
+                        break;
+                case 2:
+                    System.out.print("ISBN 코드를 입력하세요. : ");
+                    sc.nextLine();
+                    String isbnindex = sc.nextLine();
+                    String indexsql2 = "SELECT * FROM BOOK WHERE ISBN_NO = ?";
+                    conn = Common.getConnection();
+                    pStmt = conn.prepareStatement(indexsql2);
+                    pStmt.setString(1, isbnindex);
+                    rs = pStmt.executeQuery();
+                        while (rs.next()) {
+                            BigDecimal isbn = rs.getBigDecimal("ISBN_NO");
+                            String name = rs.getString("BOOK_NAME");
+                            String pub = rs.getString("PUBLISHER");
+                            String auth = rs.getString("AUTHOR");
+                            String date = rs.getString("PUB_DATE");
+                            String occ = rs.getString("IS_OCCUPIED");
+                            BookVO tmpvo = new BookVO(isbn, name, pub, auth, date, occ);
+                            tmpList.add(tmpvo);
+                        }
+                        break;
+                case 3:
+                    System.out.print("출판사를 입력하세요. : ");
+                    sc.nextLine();
+                    String indexpub = sc.nextLine();
+                    String indexsql3 = "SELECT * FROM BOOK WHERE PUBLISHER = ?";
+                        conn = Common.getConnection();
+                        pStmt = conn.prepareStatement(indexsql3);
+                        pStmt.setString(1, indexpub);
+                        rs = pStmt.executeQuery();
+                        while (rs.next()) {
+                            BigDecimal isbn = rs.getBigDecimal("ISBN_NO");
+                            String name = rs.getString("BOOK_NAME");
+                            String pub = rs.getString("PUBLISHER");
+                            String auth = rs.getString("AUTHOR");
+                            String date = rs.getString("PUB_DATE");
+                            String occ = rs.getString("IS_OCCUPIED");
+                            BookVO tmpvo = new BookVO(isbn, name, pub, auth, date, occ);
+                            tmpList.add(tmpvo);
+                        }
+                        break;
+                case 4:
+                    System.out.print("지은이 이름을 입력하세요. : ");
+                    sc.nextLine();
+                    String indexauth = sc.nextLine();
+                    String indexsql4 = "SELECT * FROM BOOK WHERE AUTHOR = ?";
+                        conn = Common.getConnection();
+                        pStmt = conn.prepareStatement(indexsql4);
+                        pStmt.setString(1, indexauth);
+                        rs = pStmt.executeQuery();
+                        while (rs.next()) {
+                            BigDecimal isbn = rs.getBigDecimal("ISBN_NO");
+                            String name = rs.getString("BOOK_NAME");
+                            String pub = rs.getString("PUBLISHER");
+                            String auth = rs.getString("AUTHOR");
+                            String date = rs.getString("PUB_DATE");
+                            String occ = rs.getString("IS_OCCUPIED");
+                            BookVO tmpvo = new BookVO(isbn, name, pub, auth, date, occ);
+                            tmpList.add(tmpvo);
+                        }
+                        break;
+            }
+            Common.close(rs);
+            Common.close(stmt);
+            Common.close(conn);
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return tmpList;
+    }
     public void bookSelectPrn(List<BookVO> list) {
         System.out.println("================================도서 정보===============================");
         System.out.println("      ISBN       도서명        출판사    지은이    발행일    대출여부");
@@ -59,15 +155,31 @@ public class BookDAO {
         }
         System.out.println("-------------------------------------------------------------------------------");
     }
+    public void IndexPrn(List<BookVO> tmpList) {
+        System.out.println("================================도서 정보===============================");
+        System.out.println("      ISBN       도서명        출판사    지은이    발행일    대출여부");
+        System.out.println("----------------------------------------------------------------------");
+        for(BookVO e : tmpList) {
+            System.out.print(e.getIsbn() + " ");
+            System.out.print(e.getName() + " | ");
+            System.out.print(e.getPub() + " | ");
+            System.out.print(e.getAuth() + " | ");
+            System.out.print(e.getDate() + " | ");
+            System.out.println(e.getOcc());
+        }
+        System.out.println("-------------------------------------------------------------------------------");
+    }
     public void bookInsert() {
         System.out.print("13자리의 ISBN CODE를 입력하세요 : ");
         BigDecimal isbn = sc.nextBigDecimal();
         System.out.print("책 제목을 입력하세요. : ");
-        String name = sc.next();
+        sc.nextLine();
+        String name = sc.nextLine();
         System.out.print("출판사 이름을 입력하세요. : ");
         String pub = sc.next();
         System.out.print("지은이 이름을 입력하세요. : ");
-        String auth = sc.next();
+        sc.nextLine();
+        String auth = sc.nextLine();
         System.out.print("발행일을 입력하세요.(YYYY-MM-DD) : ");
         String date = sc.next();
         System.out.print("X를 입력하세요. : ");
@@ -129,11 +241,6 @@ public class BookDAO {
         System.out.println("수정하려는 도서 정보가 무엇입니까?");
         System.out.println("[1]ISBN코드 [2]도서명 [3]출판사");
         System.out.println("[4]지은이 [5]발행일");
-        String tmp1 = "ISBN_NO";
-        String tmp2 = "BOOK_NAME";
-        String tmp3 = "PUBLISHER";
-        String tmp4 = "AUTHOR";
-        String tmp5 = "PUB_DATE";
         int sel = sc.nextInt();
 
         try {
