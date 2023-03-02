@@ -17,7 +17,8 @@ public class Admin {
         String ID = sc.next();
         System.out.print("관리자 비밀번호를 입력하세요. : ");
         int PWD = sc.nextInt();
-        if(ID.equalsIgnoreCase(AdminID) && PWD == AdminPWD) {
+
+        if(ID.equals(AdminID) && PWD == AdminPWD) {
             System.out.println("=================관리자 메뉴===================");
             System.out.println("[1]회원정보관리 [2]보유도서목록 [3]보유도서목록 편집");
             System.out.println("[4]현재 대출중인 도서목록");
@@ -27,6 +28,7 @@ public class Admin {
                 case 2:
                     List<BookVO> list = dao.bookSelect();
                     dao.bookSelectPrn(list);
+                    break;
                 case 3:
                     System.out.print("[1]도서목록 추가 [2]도서목록 삭제 [3]도서정보수정");
                     int sel1 = sc.nextInt();
@@ -38,10 +40,11 @@ public class Admin {
                                     case 1:dao.bookDelete(); break;
                                     case 2:dao.bookDeleteISBN(); break;
                                 } break;
-                        case 3:dao.bookUpdate(); break;
+                        case 3:dao.bookUpdate();
                     }
                 case 4:
                 case 5:
+
             }
         } else System.out.println("관리자 ID, Password를 잘못 입력하셨습니다!!");
 

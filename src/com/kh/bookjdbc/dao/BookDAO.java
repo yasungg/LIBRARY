@@ -46,9 +46,9 @@ public class BookDAO {
         return list;
     }
     public void bookSelectPrn(List<BookVO> list) {
-        System.out.println("======================도서 정보=======================");
+        System.out.println("================================도서 정보===============================");
         System.out.println("      ISBN       도서명        출판사    지은이    발행일    대출여부");
-        System.out.println("-------------------------------------");
+        System.out.println("----------------------------------------------------------------------");
         for(BookVO e : list) {
             System.out.print(e.getIsbn() + " ");
             System.out.print(e.getName() + " | ");
@@ -57,7 +57,7 @@ public class BookDAO {
             System.out.print(e.getDate() + " | ");
             System.out.println(e.getOcc());
         }
-        System.out.println("-------------------------------------");
+        System.out.println("-------------------------------------------------------------------------------");
     }
     public void bookInsert() {
         System.out.print("13자리의 ISBN CODE를 입력하세요 : ");
@@ -100,7 +100,7 @@ public class BookDAO {
             conn = Common.getConnection();
             pStmt = conn.prepareStatement(sql);
             pStmt.setString(1, name);
-            pStmt.executeUpdate();
+            pStmt.executeUpdate(sql);
         }catch(Exception e) {
             e.printStackTrace();
         }
@@ -129,48 +129,60 @@ public class BookDAO {
         System.out.println("수정하려는 도서 정보가 무엇입니까?");
         System.out.println("[1]ISBN코드 [2]도서명 [3]출판사");
         System.out.println("[4]지은이 [5]발행일");
+        String tmp1 = "ISBN_NO";
+        String tmp2 = "BOOK_NAME";
+        String tmp3 = "PUBLISHER";
+        String tmp4 = "AUTHOR";
+        String tmp5 = "PUB_DATE";
         int sel = sc.nextInt();
-        String sql = "UPDATE BOOK SET ? = ? WHERE BOOK_NAME = ?";
+
         try {
             conn = Common.getConnection();
-            pStmt = conn.prepareStatement(sql);
+
             switch(sel) {
                 case 1:
-                    pStmt.setString(1, "ISBN_NO");
+                    String sql1 = "UPDATE BOOK SET ISBN_NO = ? WHERE BOOK_NAME = ?";
+                    pStmt = conn.prepareStatement(sql1);
                     System.out.print("수정하고자 하는 ISBN 13자의 CODE를 입력하세요. : ");
                     BigDecimal isbn = sc.nextBigDecimal();
-                    pStmt.setBigDecimal(2, isbn);
-                    pStmt.setString(3, name);
+                    pStmt.setBigDecimal(1, isbn);
+                    pStmt.setString(2, name);
                     break;
                 case 2:
-                    pStmt.setString(1, "BOOK_NAME");
+                    String sql2 = "UPDATE BOOK SET BOOK_NAME = ? WHERE BOOK_NAME = ?";
+                    pStmt = conn.prepareStatement(sql2);
                     System.out.print("수정하고자 하는 도서명을 입력하세요. : ");
                     String fixedName = sc.next();
-                    pStmt.setString(2, fixedName);
-                    pStmt.setString(3, name);
+                    pStmt.setString(1, fixedName);
+                    pStmt.setString(2, name);
                     break;
                 case 3:
-                    pStmt.setString(1, "PUBLISHER");
+                    String sql3 = "UPDATE BOOK SET PUBLISHER = ? WHERE BOOK_NAME = ?";
+                    pStmt = conn.prepareStatement(sql3);
                     System.out.print("수정하고자 하는 출판사명을 입력하세요. : ");
                     String pub = sc.next();
-                    pStmt.setString(2, pub);
-                    pStmt.setString(3, name);
+                    pStmt.setString(1, pub);
+                    pStmt.setString(2, name);
                     break;
                 case 4:
-                    pStmt.setString(1, "AUTHOR");
+                    String sql4 = "UPDATE BOOK SET AUTHOR = ? WHERE BOOK_NAME = ?";
+                    pStmt = conn.prepareStatement(sql4);
                     System.out.print("수정하고자 하는 지은이 이름을 입력하세요. : ");
                     String auth = sc.next();
-                    pStmt.setString(2, auth);
-                    pStmt.setString(3, name);
+                    pStmt.setString(1, auth);
+                    pStmt.setString(2, name);
                     break;
                 case 5:
-                    pStmt.setString(1, "PUB_DATE");
+                    String sql5 = "UPDATE BOOK SET PUB_DATE = ? WHERE BOOK_NAME = ?";
+                    pStmt = conn.prepareStatement(sql5);
                     System.out.print("수정하고자 하는 발행일을 입력하세요. : ");
                     String date = sc.next();
-                    pStmt.setString(2, date);
-                    pStmt.setString(3, name);
+                    pStmt.setString(1, date);
+                    pStmt.setString(2, name);
                     break;
             }
+            int update = pStmt.executeUpdate();
+            System.out.println(update);
         }catch(Exception e) {
             e.printStackTrace();
         }
