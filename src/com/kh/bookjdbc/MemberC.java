@@ -1,7 +1,10 @@
 package com.kh.bookjdbc;
 
+import com.kh.bookjdbc.dao.BookDAO;
 import com.kh.bookjdbc.dao.MemDAO;
+import com.kh.bookjdbc.dao.OccupiedBookDAO;
 import com.kh.bookjdbc.util.Common;
+import com.kh.bookjdbc.vo.BookVO;
 import com.kh.bookjdbc.vo.OccupiedBookVO;
 
 import java.sql.Connection;
@@ -18,6 +21,8 @@ public class MemberC {
     ResultSet rs = null;
     Scanner sc = new Scanner(System.in);
     MemDAO memDAO = new MemDAO();
+    OccupiedBookDAO occbDAO = new OccupiedBookDAO();
+    BookDAO bookDAO = new BookDAO();
 
 
     public void memberLogin() {
@@ -28,21 +33,22 @@ public class MemberC {
             int sel = sc.nextInt();
             switch(sel) {
                 case 1:
+                    List<BookVO> booklist = bookDAO.bookSelect();
+                    bookDAO.bookSelectPrn(booklist);
+                    occbDAO.checkborrow();break;
                 case 2:
                 case 3:
                     System.out.println("[1]내 도서대출목록 [2]회원정보수정 [3]회원 탈퇴");
                     int sel2 = sc.nextInt();
                     switch(sel2) {
                         case 1:
-                            try {
                                 List<OccupiedBookVO> occblist = memDAO.personalOCCB();
-                                memDAO.personalOCCBPrn(occblist); break;
-                            }catch(Exception e) {
-                                e.printStackTrace();
-                            }
+                                memDAO.personalOCCBPrn(occblist);
+                                occbDAO.checkborrow();
+                                occbDAO.checkbrdate();
+                            break;
                         case 2: memDAO.memUpdate(); break;
                         case 3: memDAO.memDelete(); break;
-
                     }
             }
         }else if(tmp == -1) {

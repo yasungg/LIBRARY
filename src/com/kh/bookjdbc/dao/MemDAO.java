@@ -1,5 +1,6 @@
 package com.kh.bookjdbc.dao;
 
+    import com.kh.bookjdbc.LogInTemp;
     import com.kh.bookjdbc.MemberC;
     import com.kh.bookjdbc.util.Common;
     import com.kh.bookjdbc.vo.MemVO;
@@ -25,11 +26,14 @@ import java.util.Scanner;
         Scanner sc = new Scanner(System.in);
         String id = "";
         public int Login() {
+            List<LogInTemp> list = new ArrayList<>();
             System.out.println("로그인할 정보를 입력하세요.");
             System.out.print("아이디를 입력하세요 : ");
             id = sc.next();
             System.out.print("비밀번호를 입력하세요 : ");
             String pw = sc.next();
+            LogInTemp tmp = new LogInTemp(id, pw);
+            list.add(tmp);
             String sql = "SELECT USER_PW FROM MEMBER WHERE USER_ID = ?";
             try {
                 conn = Common.getConnection();
@@ -57,7 +61,7 @@ import java.util.Scanner;
             try {
                 conn = Common.getConnection();
                 stmt = conn.createStatement();
-                String sql = "SELECT SIGN_NO, USER_ID, RPAD(SUBSTR(USER_PW, 1, 2), 18, '*'), USER_NAME, PHONE FROM MEMBER";
+                String sql = "SELECT SIGN_NO, USER_ID, RPAD(SUBSTR(USER_PW, 1, 2), 18, '*') AS \"USER_PW\", USER_NAME, PHONE FROM MEMBER";
                 rs = stmt.executeQuery(sql);
 
                 while (rs.next()) {
@@ -155,7 +159,7 @@ import java.util.Scanner;
             String id = sc.next();
             System.out.print("삭제할 회원의 비밀번호를 입력 하세요 : ");
             String pw = sc.next();
-            String sql = "DELETE FROM MEMBER WHERE USER_NAME = ?, USER_ID = ?, USER_PW = ?";
+            String sql = "DELETE FROM MEMBER WHERE USER_NAME = ? AND USER_ID = ? AND USER_PW = ?";
             try {
                 conn = Common.getConnection();
                 pStmt = conn.prepareStatement(sql);
@@ -168,37 +172,59 @@ import java.util.Scanner;
             }
             Common.close(pStmt);
             Common.close(conn);
+            System.out.println("회원탈퇴가 완료되었습니다.");
         }
         public void memUpdate() {
             System.out.print("변경할 회원의 이름을 입력 하세요 : ");
             String name = sc.next();
-            System.out.print("회원아이디 : ");
-            String id = sc.next();
-            System.out.print("회원비밀번호 : ");
-            String pw = sc.next();
-            System.out.print("회원전화번호 : ");
-            String phone = sc.next();
-
-            String sql = "UPDATE MEMBER SET USER_ID = ?, USER_PW = ?, PHONE =? WHERE USER_NAME = ?";
-
-            try {
+            System.out.println("수정하려는 회원의 정보를 선택하세요 : [1]회원아이디 [2]회원비밀번호 [3]회원전화번호 ");
+            int sel = sc.nextInt();
+            try{
                 conn = Common.getConnection();
-                pStmt = conn.prepareStatement(sql);
-                pStmt.setString(1,id);
-                pStmt.setString(2,pw);
-                pStmt.setString(3,phone);
-                pStmt.setString(4,name);
+                switch(sel) {
+                    case 1 :
+                        String sql = "UPDATE MEMBER SET USER_ID = ? WHERE USER_NAME = ?";
+                        pStmt = conn.prepareStatement(sql);
+                        System.out.print("새로운 아이디를 입력하세요 : ");
+                        String id = sc.next();
+                        pStmt.setString(1,id);
+                        pStmt.setString(2,name);
+                        System.out.println("아이디가 수정되었습니다 : " + id);
+                        break;
+                    case 2 :
+                        String sql1 = "UPDATE MEMBER SET USER_PW = ? WHERE USER_NAME = ?";
+                        pStmt = conn.prepareStatement(sql1);
+                        System.out.print("새로운 비밀번호를 입력하세요 : ");
+                        String pw = sc.next();
+                        pStmt.setString(1,pw);
+                        pStmt.setString(2,name);
+                        System.out.println("비밀번호가 수정되었습니다 : " + pw);
+                        break;
+                    case 3 :
+                        String sql2 = "UPDATE MEMBER SET PHONE = ? WHERE USER_NAME = ?";
+                        pStmt = conn.prepareStatement(sql2);
+                        System.out.print("새로운 전화번호를 입력하세요 : ");
+                        String phone = sc.next();
+                        pStmt.setString(1,phone);
+                        pStmt.setString(2,name);
+                        System.out.println("전화번호가 수정되었습니다 : " + phone);
+                        break;
+                }
                 pStmt.executeUpdate();
+
             } catch(Exception e) {
                 e.printStackTrace();
             }
-            Common.close(stmt);
-            Common.close(conn);
+            Common.close(rs);
+            Common.close(pStmt);
+
         }
         public List<OccupiedBookVO> personalOCCB() {
             List<OccupiedBookVO> occblist = new ArrayList<>();
             String sqlid = "SELECT SIGN_NO FROM MEMBER WHERE USER_ID = ?";
-            String sql = "SELECT M.SIGN_NO, M.USER_NAME, O.BOOK_NAME, O.ISBN_NO, O.AUTHOR, O.PUB_DATE FROM (SELECT * FROM MEMBER WHERE SIGN_NO = ?) M JOIN (SELECT * FROM OCCUPIED_BOOK) O ON M.SIGN_NO = O.SIGN_NO";
+            String sql = "SELECT M.SIGN_NO, M.USER_NAME, O.BOOK_NAME, O.ISBN_NO, O.AUTHOR, O.PUB_DATE, O.BORROW_DATE FROM" +
+                    " (SELECT * FROM MEMBER WHERE SIGN_NO = ?) M JOIN (SELECT * FROM OCCUPIED_BOOK) O ON M.SIGN_NO = " +
+                    "O.SIGN_NO";
             try {
                 conn = Common.getConnection();
                 pStmt = conn.prepareStatement(sqlid);

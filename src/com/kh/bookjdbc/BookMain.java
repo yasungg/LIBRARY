@@ -2,6 +2,7 @@ package com.kh.bookjdbc;
 
 import com.kh.bookjdbc.dao.BookDAO;
 import com.kh.bookjdbc.dao.MemDAO;
+import com.kh.bookjdbc.dao.OccupiedBookDAO;
 import com.kh.bookjdbc.vo.BookVO;
 
 import java.util.List;
@@ -27,6 +28,10 @@ public class BookMain {
                 bookdao.IndexPrn(indexList); break;
             case 4:
                 admin.AdminLogin(); break;
+            case 5:
+                OccupiedBookDAO occdao = new OccupiedBookDAO();
+                occdao.checkborrow();
+
             default : System.out.println("잘못 입력하셨습니다. 다시 입력해주세요.");
         }
     }
