@@ -1,8 +1,10 @@
 package com.kh.bookjdbc;
 
 import com.kh.bookjdbc.dao.BookDAO;
+import com.kh.bookjdbc.dao.MemDAO;
 import com.kh.bookjdbc.dao.OccupiedBookDAO;
 import com.kh.bookjdbc.vo.BookVO;
+import com.kh.bookjdbc.vo.MemVO;
 import com.kh.bookjdbc.vo.OccupiedBookVO;
 
 import java.util.List;
@@ -16,6 +18,7 @@ public class Admin {
         Scanner sc = new Scanner(System.in);
         BookDAO bookdao = new BookDAO();
         OccupiedBookDAO occupiedBookDAO = new OccupiedBookDAO();
+        MemDAO memDAO = new MemDAO();
         System.out.print("관리자 ID를 입력하세요. : ");
         String ID = sc.next();
         System.out.print("관리자 비밀번호를 입력하세요. : ");
@@ -28,7 +31,8 @@ public class Admin {
             int sel = sc.nextInt();
             switch(sel) {
                 case 1:
-
+                    List<MemVO> memlist = memDAO.memSelect();
+                    memDAO.memSelectPrn(memlist);
                 case 2:
                     List<BookVO> list = bookdao.bookSelect();
                     bookdao.bookSelectPrn(list);

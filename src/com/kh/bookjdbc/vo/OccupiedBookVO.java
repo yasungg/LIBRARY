@@ -9,14 +9,22 @@ public class OccupiedBookVO {
     private BigDecimal isbn;
     private String auth;
     private String date;
-
-    public OccupiedBookVO(BigDecimal sign, String name, String bname, BigDecimal isbn, String auth, String date) {
+    private String brdate;
+    public OccupiedBookVO(BigDecimal sign, String name, String bname, BigDecimal isbn, String auth, String date, String brdate) {
         this.sign = sign;
         this.name = name;
         this.bname = bname;
         this.isbn = isbn;
         this.auth = auth;
         this.date = date;
+    }
+
+    public String getBrdate() {
+        return brdate;
+    }
+
+    public void setBrdate(String brdate) {
+        this.brdate = brdate;
     }
 
     public BigDecimal getSign() {

@@ -1,11 +1,13 @@
 package com.kh.bookjdbc.dao;
 
+    import com.kh.bookjdbc.MemberC;
     import com.kh.bookjdbc.util.Common;
     import com.kh.bookjdbc.vo.MemVO;
     import com.kh.bookjdbc.util.Common;
     import com.kh.bookjdbc.vo.MemVO;
+    import com.kh.bookjdbc.vo.OccupiedBookVO;
 
-import java.math.BigDecimal;
+    import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,22 +23,50 @@ import java.util.Scanner;
         PreparedStatement pStmt = null;
         ResultSet rs = null;
         Scanner sc = new Scanner(System.in);
+        String id = "";
+        public int Login() {
+            System.out.println("로그인할 정보를 입력하세요.");
+            System.out.print("아이디를 입력하세요 : ");
+            id = sc.next();
+            System.out.print("비밀번호를 입력하세요 : ");
+            String pw = sc.next();
+            String sql = "SELECT USER_PW FROM MEMBER WHERE USER_ID = ?";
+            try {
+                conn = Common.getConnection();
+                pStmt = conn.prepareStatement(sql);
+                pStmt.setString(1, id);
+                rs = pStmt.executeQuery();
+                rs.next();
+                if(rs.getString("USER_PW").equals(pw)) {
+                    return 1;
+                }
+                else {
+                    return -1;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Common.close(rs);
+            Common.close(pStmt);
+            Common.close(conn);
+            return 0;
+        }
 
         public List<MemVO> memSelect() {
             List<MemVO> list = new ArrayList<>();
             try {
                 conn = Common.getConnection();
                 stmt = conn.createStatement();
-                String sql = "SELECT * FROM MEMBER";
+                String sql = "SELECT SIGN_NO, USER_ID, RPAD(SUBSTR(USER_PW, 1, 2), 18, '*'), USER_NAME, PHONE FROM MEMBER";
                 rs = stmt.executeQuery(sql);
 
                 while (rs.next()) {
                     BigDecimal signNo = rs.getBigDecimal("SIGN_NO");
-                    String id = rs.getString("USER_ID");
+                    String memSid = rs.getString("USER_ID");
                     String pw = rs.getString("USER_PW");
                     String name = rs.getString("USER_NAME");
                     String phone = rs.getString("PHONE");
-                    MemVO vo = new MemVO(signNo, id, pw, name, phone);
+                    MemVO vo = new MemVO(signNo, memSid, pw, name, phone);
                     list.add(vo);
                 }
                 Common.close(rs);
@@ -164,6 +194,54 @@ import java.util.Scanner;
             }
             Common.close(stmt);
             Common.close(conn);
+        }
+        public List<OccupiedBookVO> personalOCCB() {
+            List<OccupiedBookVO> occblist = new ArrayList<>();
+            String sqlid = "SELECT SIGN_NO FROM MEMBER WHERE USER_ID = ?";
+            String sql = "SELECT M.SIGN_NO, M.USER_NAME, O.BOOK_NAME, O.ISBN_NO, O.AUTHOR, O.PUB_DATE FROM (SELECT * FROM MEMBER WHERE SIGN_NO = ?) M JOIN (SELECT * FROM OCCUPIED_BOOK) O ON M.SIGN_NO = O.SIGN_NO";
+            try {
+                conn = Common.getConnection();
+                pStmt = conn.prepareStatement(sqlid);
+                pStmt.setString(1, id);
+                rs = pStmt.executeQuery();
+                rs.next();
+                BigDecimal sign = rs.getBigDecimal("SIGN_NO");
+
+                pStmt = conn.prepareStatement(sql);
+                pStmt.setBigDecimal(1, sign);
+                rs = pStmt.executeQuery();
+                while(rs.next()) {
+                    BigDecimal rsign = rs.getBigDecimal("SIGN_NO");
+                    String uname = rs.getString("USER_NAME");
+                    String bname = rs.getString("BOOK_NAME");
+                    BigDecimal isbn = rs.getBigDecimal("ISBN_NO");
+                    String auth = rs.getString("AUTHOR");
+                    String date = rs.getString("PUB_DATE");
+                    String brdate = rs.getString("BORROW_DATE");
+                    OccupiedBookVO occbvo = new OccupiedBookVO(rsign, uname, bname, isbn, auth, date, brdate);
+                    occblist.add(occbvo);
+                }
+                Common.close(rs);
+                Common.close(pStmt);
+                Common.close(conn);
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+            return occblist;
+        }
+        public void personalOCCBPrn(List<OccupiedBookVO> occblist) {
+            System.out.println("회원번호  회원아이디  회원비밀번호  회원이름  전화번호");
+            System.out.println("---------------------------------------------");
+            for (OccupiedBookVO e : occblist){
+                System.out.print(e.getSign() + " | ");
+                System.out.print(e.getName() + " | ");
+                System.out.print(e.getBname() + " | ");
+                System.out.print(e.getIsbn() + " | ");
+                System.out.print(e.getAuth() + " | ");
+                System.out.println(e.getDate());
+                }
+            System.out.println("---------------------------------------------");
+
         }
     }
 
