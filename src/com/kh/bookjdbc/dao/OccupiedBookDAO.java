@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class OccupiedBookDAO {
+public class OccupiedBookDAO extends Member {
     Connection conn = null;
     Statement stmt = null;
     PreparedStatement pStmt = null;
@@ -58,6 +58,18 @@ public class OccupiedBookDAO {
             System.out.print(e.getDate());
         }
         System.out.println("--------------------------------------------------------------------------------");
+    }
+    public void personalOCCB() {
+        String sql = "SELECT M.SIGN_NO, M.USER_NAME, O.BOOK_NAME, O.ISBN_NO, O.AUTHOR, O.PUB_DATE \n" +
+                "    FROM (SELECT * FROM MEMBER WHERE SIGN_NO = ?) M JOIN (SELECT * FROM OCCUPIED_BOOK) O\n" +
+                "    ON M.SIGN_NO = O.SIGN_NO;";
+        try {
+            conn = Common.getConnection();
+            pStmt = conn.prepareStatement(sql);
+            pStmt.setString(1, )
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void borrow() {
