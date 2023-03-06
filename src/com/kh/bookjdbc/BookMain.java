@@ -30,7 +30,7 @@ public class BookMain {
                 admin.AdminLogin(); break;
             case 5:
                 OccupiedBookDAO occdao = new OccupiedBookDAO();
-                occdao.checkborrow();
+                occdao.borrow();
 
             default : System.out.println("잘못 입력하셨습니다. 다시 입력해주세요.");
         }

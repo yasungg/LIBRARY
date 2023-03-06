@@ -1,9 +1,5 @@
 package com.kh.bookjdbc.dao;
 
-    import com.kh.bookjdbc.LogInTemp;
-    import com.kh.bookjdbc.MemberC;
-    import com.kh.bookjdbc.util.Common;
-    import com.kh.bookjdbc.vo.MemVO;
     import com.kh.bookjdbc.util.Common;
     import com.kh.bookjdbc.vo.MemVO;
     import com.kh.bookjdbc.vo.OccupiedBookVO;
@@ -13,8 +9,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+    import java.time.LocalDateTime;
+    import java.time.format.DateTimeFormatter;
+    import java.util.ArrayList;
+    import java.util.Date;
+    import java.util.List;
 import java.util.Scanner;
 
     // 회원 정보 조회
@@ -24,21 +23,40 @@ import java.util.Scanner;
         PreparedStatement pStmt = null;
         ResultSet rs = null;
         Scanner sc = new Scanner(System.in);
-        String id = "";
+        private static String logInid = "";
+        private static String pw = "";
+        static String borrbook = "";
+
+        public String getPw() {
+            return pw;
+        }
+
+        public void setPw(String pw) {
+            this.pw = pw;
+        }
+
+        public String getLogInid() {
+            return logInid;
+        }
+
+        public void setLogInid(String logInid) {
+            this.logInid = logInid;
+        }
+
         public int Login() {
-            List<LogInTemp> list = new ArrayList<>();
             System.out.println("로그인할 정보를 입력하세요.");
             System.out.print("아이디를 입력하세요 : ");
-            id = sc.next();
+            logInid = sc.next();
+            setLogInid(logInid);
             System.out.print("비밀번호를 입력하세요 : ");
-            String pw = sc.next();
-            LogInTemp tmp = new LogInTemp(id, pw);
-            list.add(tmp);
+            pw = sc.next();
+            setPw(pw);
             String sql = "SELECT USER_PW FROM MEMBER WHERE USER_ID = ?";
             try {
                 conn = Common.getConnection();
                 pStmt = conn.prepareStatement(sql);
-                pStmt.setString(1, id);
+                pStmt.setString(1, logInid);
+                System.out.println(logInid);
                 rs = pStmt.executeQuery();
                 rs.next();
                 if(rs.getString("USER_PW").equals(pw)) {
@@ -228,7 +246,7 @@ import java.util.Scanner;
             try {
                 conn = Common.getConnection();
                 pStmt = conn.prepareStatement(sqlid);
-                pStmt.setString(1, id);
+                pStmt.setString(1, logInid);
                 rs = pStmt.executeQuery();
                 rs.next();
                 BigDecimal sign = rs.getBigDecimal("SIGN_NO");
@@ -256,19 +274,107 @@ import java.util.Scanner;
             return occblist;
         }
         public void personalOCCBPrn(List<OccupiedBookVO> occblist) {
-            System.out.println("회원번호  회원아이디  회원비밀번호  회원이름  전화번호");
+            System.out.println("  회원번호  회원이름  책이름     ISBN     지은이      발행일           대여일자          ");
             System.out.println("---------------------------------------------");
-            for (OccupiedBookVO e : occblist){
+            for (OccupiedBookVO e : occblist) {
                 System.out.print(e.getSign() + " | ");
                 System.out.print(e.getName() + " | ");
                 System.out.print(e.getBname() + " | ");
                 System.out.print(e.getIsbn() + " | ");
                 System.out.print(e.getAuth() + " | ");
-                System.out.println(e.getDate());
-                }
+                System.out.print(e.getDate() + " | ");
+                System.out.println(e.getBrdate());
+            }
             System.out.println("---------------------------------------------");
+        }
+        public void borrow() {
+            //도서 대여하면 바뀌어야 하는 것?
+            //BOOK TABLE의 IS_OCCUPIED가 O로 바뀐다.
+            //대출도서목록에 도서정보와 빌린 회원의 정보가 추가된다.
+            System.out.println("대출 신청할 도서명을 입력하세요.");
+            borrbook = sc.nextLine();
 
+            try {
+                String sql = "SELECT * FROM BOOK WHERE BOOK_NAME = ?";
+                conn = Common.getConnection();
+                pStmt = conn.prepareStatement(sql);
+                pStmt.setString(1, borrbook);
+                rs = pStmt.executeQuery();
+                if(rs.next()) {
+                    String isocc = rs.getString("IS_OCCUPIED");
+                    if (isocc.equals("X")) {
+                        try {
+                            String changeXsql = "UPDATE BOOK SET IS_OCCUPIED = ? WHERE BOOK_NAME = ?";
+                            conn = Common.getConnection();
+                            pStmt = conn.prepareStatement(changeXsql);
+                            pStmt.setString(1, "O");
+                            pStmt.setString(2, borrbook);
+                            int rst1 = pStmt.executeUpdate();
+                            if (rst1 == 1) {
+                                System.out.println("IS_OCCUPIED 변경 완료");
+                                addOCCB();
+                                System.out.println("대출 성공");
+                            } else if (isocc.equals("O")) System.out.println("이미 대여된 도서입니다!");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+            Common.close(rs);
+            Common.close(pStmt);
+            Common.close(conn);
+        }
+        public void addOCCB() {
+
+            LocalDateTime now = LocalDateTime.now();
+            String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            System.out.println(logInid);
+            String addsql = "SELECT M.SIGN_NO, M.USER_NAME, B.BOOK_NAME, B.ISBN_NO, B.AUTHOR, B.PUB_DATE FROM (SELECT * FROM BOOK WHERE BOOK_NAME = ?) B JOIN (SELECT * FROM MEMBER WHERE USER_ID = ?) M ON B.LIBNO = M.LIBNO";
+            try{
+                Connection conn1 = Common.getConnection();
+                PreparedStatement pStmt1 = conn1.prepareStatement(addsql);
+                pStmt1.setString(1, borrbook);
+                pStmt1.setString(2, logInid);
+                ResultSet rs1 = pStmt1.executeQuery();
+                if(rs1.next()) {
+                    BigDecimal brsign = rs1.getBigDecimal("SIGN_NO");
+                    String brname = rs1.getString("USER_NAME");
+                    String brbname = rs1.getString("BOOK_NAME");
+                    BigDecimal brisbn = rs1.getBigDecimal("ISBN_NO");
+                    String brauth = rs1.getString("AUTHOR");
+                    String brpdate = rs1.getString("PUB_DATE");
+                    String brdate = formatedNow;
+                    int libno = 1;
+                    System.out.println(brsign);
+                    try {
+                        String putinsql = "INSERT INTO OCCUPIED_BOOK VALUES(?,?,?,?,?,?,?,?)";
+                        Connection conn2 = Common.getConnection();
+                        PreparedStatement pStmt2 = conn2.prepareStatement(putinsql);
+                        pStmt2.setBigDecimal(1, brsign);
+                        pStmt2.setString(2, brname);
+                        pStmt2.setString(3, brbname);
+                        pStmt2.setBigDecimal(4, brisbn);
+                        pStmt2.setString(5, brauth);
+                        pStmt2.setString(6, brpdate);
+                        pStmt2.setString(7, brdate);
+                        pStmt2.setInt(8, libno);
+                        int rst2 = pStmt2.executeUpdate();
+                        System.out.println(rst2);
+                    }catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Common.close(rs);
+            Common.close(pStmt);
+            Common.close(conn);
         }
     }
+
 
 
